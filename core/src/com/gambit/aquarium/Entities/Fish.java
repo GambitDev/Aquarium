@@ -1,13 +1,15 @@
 package com.gambit.aquarium.Entities;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector3;
 
 import java.util.Random;
 
 public class Fish {
 
-    private float fishXPos , fishYPos;
+    private Vector3 fishPosition , fishDestinationPos;
     private float fishWidth, fishHeight;
     private float fishXVelocity , fishYVelocity;
     private Color fishColor;
@@ -18,65 +20,90 @@ public class Fish {
         this.fishHeight = fishHeight;
         fishColor = pickFishColor();
         renderer = new ShapeRenderer();
+        fishPosition = getRandomPos();
+        fishDestinationPos = fishPosition;
+    }
+
+    private Vector3 getRandomPos() {
+        Random r = new Random();
+        int screenWidth = Gdx.graphics.getWidth();
+        int screenHeight = Gdx.graphics.getHeight();
+        return new Vector3(r.nextInt(screenWidth) , r.nextInt(screenHeight) , 0);
     }
 
     //calculate how much to move per frame for smooth movement
     private void calcVelocity(float destinationX , float destinationY) {
-        float frames = 15.0f;
-        float deltaX = fishXPos > destinationX ?
-                fishXPos - destinationX :
-                destinationX - fishXPos;
+        float frames = 30.0f;
+        float deltaX = fishPosition.x > destinationX ?
+                fishPosition.x - destinationX :
+                destinationX - fishPosition.x;
         fishXVelocity = deltaX / frames;
-        float deltaY = fishYPos > destinationY ?
-                fishYPos - destinationY :
-                destinationY - fishYPos;
+        float deltaY = fishPosition.y > destinationY ?
+                fishPosition.y - destinationY :
+                destinationY - fishPosition.y;
         fishYVelocity = deltaY / frames;
     }
 
-    public void renderNextFrame(float x , float y) {
-        calcVelocity(x , y);
+    public void renderNextFrame() {
+        boolean newDestinationNecessary = needNewDestination();
+        if (newDestinationNecessary) {
+            fishDestinationPos = getRandomPos();
+        }
 
-        if (fishXPos == x) {
+//        markPoint(fishDestinationPos);
+
+        calcVelocity(fishDestinationPos.x , fishDestinationPos.y);
+
+        if (fishPosition.x == fishDestinationPos.x) {
             if (fishXVelocity < 0)
                 reverseXVelocity();
-            normalizeFishYPos(y);
+            normalizeFishYPos(fishDestinationPos.y);
             return;
         }
-        if (fishXPos > x) {
-            if (fishXPos - x < fishXVelocity) {
-                fishXPos = x;
-                return;
+
+        if (fishPosition.x > fishDestinationPos.x) {
+            if (fishPosition.x - fishDestinationPos.x < fishXVelocity) {
+                fishPosition.x = fishDestinationPos.x;
             }
             if (fishXVelocity > 0)
                 reverseXVelocity();
         }
-        float m = (fishYPos - y) / (fishXPos - x);
-        fishXPos += fishXVelocity;
-        fishYPos = findNewYPos(fishXPos - fishXVelocity , fishXPos , fishYPos , m);
+
+        float m = (fishPosition.y - fishDestinationPos.y) / (fishPosition.x - fishDestinationPos.x);
+        fishPosition.x += fishXVelocity;
+        fishPosition.y = findNewYPos(fishPosition.x - fishXVelocity ,
+                fishPosition.x , fishPosition.y , m);
     }
 
     private void normalizeFishYPos(float destinationY) {
-        if (fishYPos > destinationY) {
-            if (fishYPos - destinationY < fishYVelocity) {
-                fishYPos = destinationY;
+        if (fishPosition.y > destinationY) {
+            if (fishPosition.y - destinationY < fishYVelocity) {
+                fishPosition.y = destinationY;
                 reverseYVelocity();
                 return;
             }
             if (fishYVelocity > 0)
                 reverseYVelocity();
         }
-        fishYPos += fishYVelocity;
+        fishPosition.y += fishYVelocity;
     }
 
     public void drawNextFrame() {
         renderer.begin(ShapeRenderer.ShapeType.Filled);
         renderer.setColor(fishColor);
-        renderer.rect(fishXPos, fishYPos, fishWidth, fishHeight);
+        renderer.rect(fishPosition.x, fishPosition.y, fishWidth, fishHeight);
         renderer.end();
     }
 
     private float findNewYPos(float prevFishXPos , float fishXPos , float fishYPos , float m) {
         return m * (fishXPos - prevFishXPos) + fishYPos;
+    }
+
+    private void markPoint(Vector3 pos) {
+        renderer.begin(ShapeRenderer.ShapeType.Filled);
+        renderer.setColor(Color.WHITE);
+        renderer.circle(pos.x , pos.y , 10);
+        renderer.end();
     }
 
     private Color pickFishColor() {
@@ -98,6 +125,12 @@ public class Fish {
         return colors[r.nextInt(colors.length)];
     }
 
+    private boolean needNewDestination() {
+        Random r = new Random();
+        int chances = r.nextInt(1000);
+        return chances >= 990;
+    }
+
     public void disposeShapeRenderer() {
         renderer.dispose();
     }
@@ -108,22 +141,6 @@ public class Fish {
 
     private void reverseYVelocity() {
         fishYVelocity = -fishYVelocity;
-    }
-
-    public float getFishXPos() {
-        return fishXPos;
-    }
-
-    public void setFishXPos(float fishXPos) {
-        this.fishXPos = fishXPos;
-    }
-
-    public float getFishYPos() {
-        return fishYPos;
-    }
-
-    public void setFishYPos(float fishYPos) {
-        this.fishYPos = fishYPos;
     }
 
     public float getFishWidth() {
@@ -164,5 +181,21 @@ public class Fish {
 
     public void setFishYVelocity(float fishYVelocity) {
         this.fishYVelocity = fishYVelocity;
+    }
+
+    public Vector3 getFishPosition() {
+        return fishPosition;
+    }
+
+    public void setFishPosition(Vector3 fishPosition) {
+        this.fishPosition = fishPosition;
+    }
+
+    public Vector3 getFishDestinationPos() {
+        return fishDestinationPos;
+    }
+
+    public void setFishDestinationPos(Vector3 fishDestinationPos) {
+        this.fishDestinationPos = fishDestinationPos;
     }
 }
