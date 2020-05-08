@@ -1,6 +1,5 @@
 package com.gambit.aquarium.Entities;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
@@ -14,45 +13,59 @@ public class Fish {
     private Color fishColor;
     private ShapeRenderer renderer;
 
-    public Fish() {
+    public Fish(float fishWidth , float fishHeight) {
+        this.fishWidth = fishWidth;
+        this.fishHeight = fishHeight;
         fishColor = pickFishColor();
-        fishXVelocity = 5;
-        fishYVelocity = 5;
-    }
-
-    public void init() {
         renderer = new ShapeRenderer();
-        renderer.begin(ShapeRenderer.ShapeType.Filled);
-        renderer.setColor(fishColor);
-        renderer.rect(fishXPos, fishYPos, fishWidth, fishHeight);
-        renderer.end();
-//        getStartVelocity();
     }
 
-    private void getStartVelocity() {
-        Random r = new Random();
-        int[] options = {-1 , 1};
-        fishXVelocity *= options[r.nextInt(options.length)];
-        fishYVelocity *= options[r.nextInt(options.length)];
+    //calculate how much to move per frame for smooth movement
+    private void calcVelocity(float destinationX , float destinationY) {
+        float frames = 15.0f;
+        float deltaX = fishXPos > destinationX ?
+                fishXPos - destinationX :
+                destinationX - fishXPos;
+        fishXVelocity = deltaX / frames;
+        float deltaY = fishYPos > destinationY ?
+                fishYPos - destinationY :
+                destinationY - fishYPos;
+        fishYVelocity = deltaY / frames;
     }
 
     public void renderNextFrame(float x , float y) {
+        calcVelocity(x , y);
 
-        renderer.begin(ShapeRenderer.ShapeType.Filled);
-        renderer.setColor(Color.WHITE);
-        renderer.circle(x , y, 10.0f);
-        renderer.end();
-
-        if (fishXPos == x)
+        if (fishXPos == x) {
+            if (fishXVelocity < 0)
+                reverseXVelocity();
+            normalizeFishYPos(y);
             return;
-//        if (fishXPos > x) {
-//            if (fishXVelocity > 0)
-//                changeXVelocity();
-//        }
+        }
+        if (fishXPos > x) {
+            if (fishXPos - x < fishXVelocity) {
+                fishXPos = x;
+                return;
+            }
+            if (fishXVelocity > 0)
+                reverseXVelocity();
+        }
         float m = (fishYPos - y) / (fishXPos - x);
-        // y - fishYPos = m(x - fishXPos)
         fishXPos += fishXVelocity;
         fishYPos = findNewYPos(fishXPos - fishXVelocity , fishXPos , fishYPos , m);
+    }
+
+    private void normalizeFishYPos(float destinationY) {
+        if (fishYPos > destinationY) {
+            if (fishYPos - destinationY < fishYVelocity) {
+                fishYPos = destinationY;
+                reverseYVelocity();
+                return;
+            }
+            if (fishYVelocity > 0)
+                reverseYVelocity();
+        }
+        fishYPos += fishYVelocity;
     }
 
     public void drawNextFrame() {
@@ -72,17 +85,28 @@ public class Fish {
                 Color.BLUE,
                 Color.BROWN,
                 Color.CHARTREUSE,
-                Color.CORAL};
+                Color.CORAL,
+                Color.CYAN,
+                Color.DARK_GRAY,
+                Color.FIREBRICK,
+                Color.FOREST,
+                Color.GOLD,
+                Color.GOLDENROD,
+                Color.SALMON};
 
         Random r = new Random();
         return colors[r.nextInt(colors.length)];
     }
 
-    private void changeXVelocity() {
+    public void disposeShapeRenderer() {
+        renderer.dispose();
+    }
+
+    private void reverseXVelocity() {
         fishXVelocity = -fishXVelocity;
     }
 
-    private void changeYVelocity() {
+    private void reverseYVelocity() {
         fishYVelocity = -fishYVelocity;
     }
 
