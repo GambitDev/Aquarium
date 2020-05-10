@@ -3,6 +3,7 @@ package com.gambit.aquarium.Entities;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 
 import java.util.Random;
@@ -121,13 +122,11 @@ public class Fish {
                 Color.GOLDENROD,
                 Color.SALMON};
 
-        Random r = new Random();
-        return colors[r.nextInt(colors.length)];
+        return colors[MathUtils.random(0 , colors.length)];
     }
 
     private boolean needNewDestination() {
-        Random r = new Random();
-        int chances = r.nextInt(1000);
+        int chances = MathUtils.random(1000);
         return chances >= 990;
     }
 
