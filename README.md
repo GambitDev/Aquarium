@@ -1,5 +1,6 @@
 # Aquarium
-A little project I've played around with, built with LibGDX
+A little project I've played around with, built with LibGDX.
+
 The plan is to make this into a full game.
 
 the concept is simple, you have an aquarium, in which you raise fish
