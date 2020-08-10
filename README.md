@@ -3,7 +3,8 @@ A little project I've played around with, built with LibGDX.
 
 The plan is to make this into a full game.
 
-the concept is simple, you have an aquarium, in which you raise fish
+the concept is simple, you have an aquarium, in which you raise fish!
+
 In the future the player will be able to feed the fish, purchase new fish and decorations and earn coins from different interactions with said fish.
 
 As of now not much is happenning in the game, fish (now represented as rectangles) are randomly generated on the screen, all with random colors
